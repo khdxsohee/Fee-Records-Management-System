@@ -6,7 +6,6 @@
 ![CSS](https://img.shields.io/badge/CSS3-1572B6?style=flat&logo=css3&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 [![Follow on GitHub](https://img.shields.io/badge/GitHub-Follow%20@khdxsohee-181717?style=flat&logo=github&logoColor=white)](https://github.com/khdxsohee)
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-khalid--randhawa.web.app-brightgreen?style=flat)](https://khalid-randhawa.web.app/apps-projects/fee-records-management-system.html)
 [![Live Demo Updated](https://img.shields.io/badge/Live%20Demo-khalid--randhawa.web.app-brightgreen?style=flat)](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
 ### Fee Records Management System
 
@@ -16,6 +15,7 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 -   **Live Demo:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/fee-records-management-system.html)
 -   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
+-   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
 
 ---
 
