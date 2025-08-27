@@ -15,13 +15,21 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 -   **Live Demo:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/fee-records-management-system.html)
 -   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
--   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
+-   **Live Demo Updated Pin Password Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
 
 ---
 
-<img width="1354" height="639" alt="image" src="https://github.com/user-attachments/assets/201b971e-f83b-4741-82bd-db557698e375" />
+<img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
 
+## 📌 Key New Feature: Pin Password
+
+We've recently added a major new feature: **Pin Password**.
+
+Now You can Securely open your Dashboard via Password, (Password used here is 1234)
+
+### How to Use This Feature
+Just click on Live demo with Pin Option and enter 1234 Pin and enjoy the fully functionak system.
 ### Features
 
 This system is packed with features to streamline your fee management process:
