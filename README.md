@@ -22,6 +22,12 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 <img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
 
+## 📌 Key New Feature: Email Confirmation Message
+
+We've recently added a major new feature: **Confirmation Email**.
+
+Now You can Securely view an automated Receipt of Studnet Fees Entry in Your Email.
+
 ## 📌 Key New Feature: Pin Password
 
 We've recently added a major new feature: **Pin Password**.
