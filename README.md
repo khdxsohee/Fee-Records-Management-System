@@ -17,11 +17,15 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 -   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
 -   **Live Demo Updated Pin Password Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
 -   **Live Demo Updated Email Confirmation + Pin:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
+-   **Live Demo Updated + Receipt Generation PDF Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation%20+%20recept%20generation.html)
 
 ---
 
 <img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
+## 📌 Key New Feature: Receipt Genration Feature Added
+
+We've recently added a major new feature: **Receipt Generation in PDF**.
 
 ## 📌 Key New Feature: Email Confirmation Message Added
 
