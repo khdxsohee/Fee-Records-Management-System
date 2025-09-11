@@ -23,7 +23,7 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 <img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
-## 📌 Key New Feature: Receipt Genration Feature Added
+## 📌 Key New Feature: Receipt Generation Feature Added
 
 We've recently added a major new feature: **Receipt Generation in PDF**.
 
