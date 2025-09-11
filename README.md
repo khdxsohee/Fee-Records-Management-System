@@ -23,28 +23,18 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 <img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
-## 📌 Key New Feature: Receipt Generation Feature Added
+## ✨ New Key Features Added
 
-We've recently added a major new feature: **Receipt Generation in PDF**.
+### 1. Receipt Generation (PDF)
+Generate professional PDF receipts automatically for each fee payment, enhancing record-keeping and providing students/parents with official payment proof.
 
-## 📌 Key New Feature: Email Confirmation Message Added
+### 2. Email Confirmation
+Receive automated confirmation emails with fee payment details and receipts, ensuring transparent communication. *(Configure your email in the Apps Script for personalized use.)*
 
-We've recently added a major new feature: **Confirmation Email**.
+### 3. PIN Password Security (Pin is : 1234)
+Protect your dashboard with a secure PIN (default: `1234`), restricting unauthorized access and safeguarding sensitive data.
 
-Now You can Securely view an automated Receipt of Studnet Fees Entry in Your Email.
-(Here the confirmation email is sent at my email, You can configure this in your appscript code while in the development.)
-
-### How to Use This Feature
-Just change the email address in appscript to your email address and enjoy the fully functional system.
-
-## 📌 Key New Feature: Pin Password
-
-We've recently added a major new feature: **Pin Password**.
-
-Now You can Securely open your Dashboard via Password, (Password used here is 1234)
-
-### How to Use This Feature
-Just click on Live demo with Pin Option and enter 1234 Pin and enjoy the fully functionak system.
+---
 ### Features
 
 This system is packed with features to streamline your fee management process:
