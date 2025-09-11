@@ -23,12 +23,15 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 <img width="1351" height="641" alt="image" src="https://github.com/user-attachments/assets/0af9fcc1-afb5-4b40-9aaa-1b63bba8aced" />
 
 
-## 📌 Key New Feature: Email Confirmation Message
+## 📌 Key New Feature: Email Confirmation Message Added
 
 We've recently added a major new feature: **Confirmation Email**.
 
 Now You can Securely view an automated Receipt of Studnet Fees Entry in Your Email.
 (Here the confirmation email is sent at my email, You can configure this in your appscript code while in the development.)
+
+### How to Use This Feature
+Just change the email address in appscript to your email address and enjoy the fully functional system.
 
 ## 📌 Key New Feature: Pin Password
 
