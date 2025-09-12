@@ -25,14 +25,17 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 ## ✨ New Key Features Added
 
-### 1. Receipt Generation (PDF)
+### 1. Receipt Generation (PDF) (Pin is : 1234)
 Generate professional PDF receipts automatically for each fee payment, enhancing record-keeping and providing students/parents with official payment proof.
 
-### 2. Email Confirmation
+### 2. Email Confirmation (Pin is : 1234)
 Receive automated confirmation emails with fee payment details and receipts, ensuring transparent communication. *(Configure your email in the Apps Script for personalized use.)*
 
 ### 3. PIN Password Security (Pin is : 1234)
 Protect your dashboard with a secure PIN (default: `1234`), restricting unauthorized access and safeguarding sensitive data.
+
+### 4. Color Theme Changing (Pin is : 1234)
+You can change Color Theme according to your favourite color. Color theme will be saved in local storage as of user preference.
 
 ---
 ### Features
