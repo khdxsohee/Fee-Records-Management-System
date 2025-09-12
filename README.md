@@ -17,6 +17,7 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 -   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
 -   **Live Demo Updated Pin Password Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
 -   **Live Demo Updated Email Confirmation + Pin:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
+-   **Live Demo Updated Theme Change Feature:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation+theme%20changer+receipt.html)
 -   **Live Demo Updated + Receipt Generation PDF Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation%20+%20recept%20generation.html)
 
 ---
