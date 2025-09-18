@@ -10,26 +10,35 @@
 ### Fee Records Management System
 
 A dynamic and efficient web application built on Google Apps Script and Google Sheets to manage student fee records. This system provides a user-friendly interface for registering students, tracking monthly fee payments, and generating comprehensive reports. It's a powerful tool for educational institutions and tutors to simplify their administrative tasks..
-## Prerequisites
+## Prerequisites _(PIN is 1234)_
 ### What You Can Try Freely
 
 You can test all features without needing to install anything locally:
 
+- All Dashboard Features
 - Register a student  
 - Pay fees (month-wise)  
 - Use the Drop-Out feature  
 - View receipts  
 - Edit fees  
-- Generate statements 
+- Generate statements
+- Generate Reports
+
+⚠️ Note: All student records and details shown in the demo are **fictional** and used only for testing purposes.
 
 ### Live Demo & Screenshots (PIN IS 1234)
-
--   **Live Demo Old:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/fee-records-management-system.html)
--   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
--   **Live Demo Updated Pin Password Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
+-   **Live Demo Updated + Receipt Generation PDF Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation%20+%20recept%20generation.html)
 -   **Live Demo Updated Email Confirmation + Pin:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
 -   **Live Demo Updated Theme Change Feature:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation+theme%20changer+receipt.html)
--   **Live Demo Updated + Receipt Generation PDF Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/index-with-email-confirmation%20+%20recept%20generation.html)
+
+-   **Live Demo Updated Pin Password Added:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/Fee-Records-management-system-with-pin-security.html)
+-   **Live Demo Updated:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/indexwithfeeupdatefeature.html)
+-   **Live Demo Old:** [Click Here to see Live Preview](https://khalid-randhawa.web.app/apps-projects/fee-records-management-system.html)
+
+
+
+
+
 
 ---
 
@@ -89,7 +98,7 @@ To use this application, you need a Google account with access to Google Sheets 
 3.  Copy the provided Apps Script code (from your prompt) and paste it into the code editor.
 
 ```
-// Global variables for easy sheet access
+
 const SPREADSHEET = SpreadsheetApp.getActiveSpreadsheet();
 const REGISTRATION_SHEET_NAME = "Student Registration";
 
@@ -110,7 +119,7 @@ function doGet(e) {
     return getStatement(name);
   }
 
-  // ✅ New: Get all data for the dashboard, including unpaid students, for a specific month or all months
+ 
   if (action === "getAllData") {
     return getAllData(e.parameter.month);
   }
@@ -255,8 +264,6 @@ function getStudentData(name) {
         .setMimeType(ContentService.MimeType.JSON);
 }
 
-
-// --- New Student Registration Function ---
 function registerStudent(data) {
     let sheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
     if (!sheet) {
@@ -347,18 +354,6 @@ function getStudentData(name) {
     return ContentService.createTextOutput(JSON.stringify(studentDetails))
     .setMimeType(ContentService.MimeType.JSON);
 }
-
-
-
-
-
-
-
-
-
-
-// --- Submit Fee Function (to monthly sheet) ---
-// --- Submit Fee Function (to monthly sheet) ---
 function submitFee(data) {
     const monthName = data.month;
     let sheet = SPREADSHEET.getSheetByName(monthName);
@@ -420,14 +415,6 @@ function submitFee(data) {
     }))
     .setMimeType(ContentService.MimeType.JSON);
 }
-
-
-
-
-
-
-
-
 
 // --- Mark Student as Withdrawn Function ---
 function markWithdrawn(data) {
