@@ -10,6 +10,17 @@
 ### Fee Records Management System
 
 A dynamic and efficient web application built on Google Apps Script and Google Sheets to manage student fee records. This system provides a user-friendly interface for registering students, tracking monthly fee payments, and generating comprehensive reports. It's a powerful tool for educational institutions and tutors to simplify their administrative tasks..
+## Prerequisites
+### What You Can Try Freely
+
+You can test all features without needing to install anything locally:
+
+- Register a student  
+- Pay fees (month-wise)  
+- Use the Drop-Out feature  
+- View receipts  
+- Edit fees  
+- Generate statements 
 
 ### Live Demo & Screenshots (PIN IS 1234)
 
