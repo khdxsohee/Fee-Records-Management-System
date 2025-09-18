@@ -451,9 +451,64 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* New Password Overlay Styles */
+        #passwordOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s ease-in-out;
+        }
+
+        .password-card {
+            background-color: #1a1a2e;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .password-card h2 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
     </style>
 </head>
 <body>
+    
+    <div id="passwordOverlay">
+        <div class="password-card">
+            <h2>Enter PIN to Access</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="passwordInput" style="display: none;">PIN:</label>
+                    <input type="password" id="passwordInput" placeholder="Enter PIN" required />
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="loginBtn">Login</button>
+                </div>
+            </form>
+            <div id="passwordAlert" class="alert-message" style="display: none;"></div>
+        </div>
+    </div>
+    
     <h1 class="page-title">Student Fee Dashboard</h1>
 
     <div class="nav-menu">
@@ -736,6 +791,13 @@
         const searchInput = document.getElementById('searchInput');
         const tbody = document.querySelector('#dataTable tbody');
         const info = document.getElementById('tableInfo');
+        
+        // Password Protection Elements
+        const passwordOverlay = document.getElementById('passwordOverlay');
+        const passwordForm = document.getElementById('passwordForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const passwordAlert = document.getElementById('passwordAlert');
+        const correctPIN = '4550';
 
         function showSection(sectionId) {
         sections.forEach(section => {
@@ -772,6 +834,21 @@
                 showSection('dashboardSection');
             }
         });
+        
+        // Password form submission handler
+        passwordForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const enteredPIN = passwordInput.value;
+            if (enteredPIN === correctPIN) {
+                // Fade out and hide the overlay
+                passwordOverlay.style.opacity = '0';
+                passwordOverlay.style.visibility = 'hidden';
+            } else {
+                showAlert(passwordAlert, 'Incorrect PIN. Please try again.', 'error');
+                passwordInput.value = '';
+            }
+        });
+
 
         // --- Shared Autocomplete Logic ---
         async function getAllStudents() {
@@ -1419,5 +1496,31 @@ function populateMonthDropdown() {
 
     </script>
     
+<script>
+    // Right-click ko disable kare
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+    // Inspect Element ke shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+C) ko disable kare
+    document.addEventListener('keydown', function(e) {
+        // F12 key
+        if (e.key === "F12") {
+            e.preventDefault();
+        }
+        
+        // Ctrl+Shift+I ya Ctrl+Shift+C (Windows)
+        if (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'C')) {
+            e.preventDefault();
+        }
+
+        // Cmd+Opt+I (Mac)
+        if (e.metaKey && e.altKey && e.key === 'I') {
+            e.preventDefault();
+        }
+    });
+</script>
+
+
 </body>
 </html>

@@ -1,0 +1,58 @@
+<style>
+    /* Body style for the hacking feel */
+    body {
+        background-color: #000; /* Black background */
+        color: #00ff00; /* Neon green text */
+        font-family: 'Courier New', Courier, monospace; /* Monospaced font */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        overflow: hidden; /* Hide any overflow */
+    }
+
+    /* Container for the main message */
+    .hacking-container {
+        text-align: center;
+        padding: 20px;
+        border: 2px solid #00ff00; /* Neon green border */
+        box-shadow: 0 0 10px #00ff00, 0 0 20px #00ff00; /* Glowing effect */
+        border-radius: 5px;
+        animation: glitch-effect 2s infinite; /* Glitch animation */
+    }
+
+    /* Text style */
+    .pin-text {
+        font-size: 2.5em;
+        text-shadow: 0 0 5px #00ff00; /* Text glow */
+        animation: text-flicker 1.5s infinite alternate; /* Text flickering animation */
+    }
+
+    /* CSS Animations for the hacking feel */
+    @keyframes glitch-effect {
+        0% { transform: translate(0); }
+        20% { transform: translate(-2px, 2px); }
+        40% { transform: translate(-2px, -2px); }
+        60% { transform: translate(2px, 2px); }
+        80% { transform: translate(2px, -2px); }
+        100% { transform: translate(0); }
+    }
+
+    @keyframes text-flicker {
+        0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+            opacity: 1;
+            text-shadow: 0 0 5px #00ff00, 0 0 10px #00ff00, 0 0 20px #00ff00;
+        }
+        20%, 24%, 55% {
+            opacity: 0.5;
+            text-shadow: none;
+        }
+    }
+</style>
+
+<body>
+    <div class="hacking-container">
+        <p class="pin-text">Your pin is 4550 or 1234</p>
+    </div>
+</body>
