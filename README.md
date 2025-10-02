@@ -15,7 +15,7 @@ A dynamic and efficient web application built on Google Apps Script and Google S
 
 You can test all features without needing to install anything locally:
 
-- All Dashboard Features
+- All Dashboard Features 
 - Register a student  
 - Pay fees (month-wise)  
 - Use the Drop-Out feature  
