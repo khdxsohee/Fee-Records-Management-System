@@ -1,0 +1,579 @@
+// --- GLOBAL VARIABLES ---
+// ⚠️ IMPORTANT: Replace 'YOUR_MUNEED_SPREADSHEET_ID_HERE' with the actual ID
+// The ID is the long string of characters in the spreadsheet's URL.
+const SPREADSHEET_ID = '1q0YTjHDczJDj_56DI7GAzBLQ4ZDHx5iKwrUcRmZ5hDg'; 
+const SPREADSHEET = SpreadsheetApp.openById(SPREADSHEET_ID); 
+const REGISTRATION_SHEET_NAME = "Student Registration";
+
+// ✅ NEW GLOBAL CACHE: To store all monthly data for rapid access
+// This is the core speed optimization.
+let MONTHLY_FEE_DATA_CACHE = null; 
+// ------------------------
+
+/**
+ * Helper function to read ALL monthly fee records from ALL monthly sheets.
+ * This is the ONLY function that should iterate and call getValues() on fee sheets.
+ * It's slow, but doing it once per execution is the fastest method.
+ */
+function _getAllMonthlyFeeRecords() {
+  if (MONTHLY_FEE_DATA_CACHE) return MONTHLY_FEE_DATA_CACHE;
+  
+  const sheets = SPREADSHEET.getSheets();
+  const allRecords = {}; // { sheetName: [ [row data], [row data] ] }
+
+  sheets.forEach(sheet => {
+    const sheetName = sheet.getName();
+    // Use regex to identify only the month/year sheets
+    if (sheetName.match(/^\w+\s\d{4}$/)) {
+      try {
+        // 💡 BOTTLENECK: This is the slow I/O call, but we MUST do it to read the data.
+        // We do it once, then use the result repeatedly.
+        const data = sheet.getDataRange().getValues();
+        // Store data starting from row 1 (excluding headers)
+        allRecords[sheetName] = data.slice(1); 
+      } catch (e) {
+        Logger.log(`Error reading sheet ${sheetName}: ${e}`);
+      }
+    }
+  });
+
+  MONTHLY_FEE_DATA_CACHE = allRecords;
+  return allRecords;
+}
+
+// --- Main Entry Points ---
+
+function doGet(e) {
+  const action = e.parameter.action;
+
+  if (action === "getStudents") {
+    // This is already fast, only reads one sheet
+    return getStudents();
+  }
+
+  if (action === "getStudentData") {
+    // 🚀 OPTIMIZED
+    const name = e.parameter.name;
+    return getStudentData(name);
+  }
+
+  if (action === "getStatement") {
+    // 🚀 OPTIMIZED
+    const name = e.parameter.name;
+    return getStatement(name);
+  }
+  
+  if (action === "getAllData") {
+    // 🚀 OPTIMIZED
+    return getAllData(e.parameter.month);
+  }
+
+  if (action === "getMonths") {
+    // 🚀 OPTIMIZED
+    return getAvailableMonths();
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: 'Invalid action'
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+  try {
+    const postData = JSON.parse(e.postData.contents);
+    const action = postData.action;
+    const data = postData.data;
+
+    // These write operations (registerStudent, submitFee, markWithdrawn, etc.)
+    // are inherently slow because they change the spreadsheet, but they are unavoidable.
+    // The previous logic for these was already sound.
+
+    if (action === "registerStudent") {
+      return registerStudent(data);
+    }
+
+    if (action === "submitFee") {
+      return submitFee(data);
+    }
+
+    if (action === "markWithdrawn") {
+      return markWithdrawn(data);
+    }
+    
+    if (action === "updateStudentDetails") {
+      return updateStudentDetails(data);
+    }
+
+    if (action === "editFeeDetails") {
+      return editFeeDetails(data);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Invalid action'
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+
+  } catch (error) {
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: error.message
+      }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+// --- UPDATED FUNCTIONS FOR SPEED ---
+
+// --- Updated: Get Specific Student Data & Fee History (for Fee Entry Summary) ---
+function getStudentData(name) {
+    const regSheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!regSheet) {
+        return ContentService.createTextOutput(JSON.stringify(null)).setMimeType(ContentService.MimeType.JSON);
+    }
+    // 💡 Read registration sheet data ONCE
+    const regData = regSheet.getDataRange().getValues();
+    let studentDetails = null;
+
+    for (let i = 1; i < regData.length; i++) {
+        if (regData[i][0] && regData[i][0].toLowerCase() === name.toLowerCase()) {
+            studentDetails = {
+                name: regData[i][0],
+                class: regData[i][1],
+                admissionDate: Utilities.formatDate(new Date(regData[i][2]), "GMT", "yyyy-MM-dd"),
+                monthlyFee: regData[i][3],
+                status: regData[i][4],
+                withdrawnDate: regData[i][5] ? Utilities.formatDate(new Date(regData[i][5]), "GMT", "yyyy-MM-dd") : null,
+            };
+            break;
+        }
+    }
+
+    if (!studentDetails) {
+        return ContentService.createTextOutput(JSON.stringify(null)).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 🚀 OPTIMIZATION: Get all fee data from the in-memory cache
+    const allMonthlyData = _getAllMonthlyFeeRecords(); 
+    let totalFeePaid = 0;
+    let monthsPresent = new Set();
+
+    // Iterate over the IN-MEMORY data (much faster than I/O)
+    for (const sheetName in allMonthlyData) {
+      const data = allMonthlyData[sheetName];
+      data.forEach(row => {
+        if (row[0] && row[0].toLowerCase() === name.toLowerCase()) {
+            totalFeePaid += parseFloat(row[4] || 0); // row[4] is Paid Amount
+            monthsPresent.add(sheetName);
+        }
+      });
+    }
+
+    studentDetails.totalFeePaid = totalFeePaid;
+    studentDetails.monthsPresent = monthsPresent.size;
+
+    return ContentService.createTextOutput(JSON.stringify(studentDetails))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// --- Updated: Get Student Statement Function (using cache) ---
+function getStatement(name) {
+    let records = [];
+    
+    // 🚀 OPTIMIZATION: Get all fee data from the in-memory cache
+    const allMonthlyData = _getAllMonthlyFeeRecords();
+
+    // Iterate over the IN-MEMORY data (much faster than I/O)
+    for (const sheetName in allMonthlyData) {
+      const data = allMonthlyData[sheetName];
+      data.forEach(row => {
+        if (row[0] && row[0].toLowerCase() === name.toLowerCase()) {
+            records.push({
+                month: sheetName,
+                name: row[0],
+                class: row[1],
+                date: row[2] ? Utilities.formatDate(new Date(row[2]), "GMT", "yyyy-MM-dd") : "",
+                monthlyFee: row[3],
+                paidAmount: row[4],
+                status: row[5]
+            });
+        }
+      });
+    }
+
+    if (records.length > 0) {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'success',
+            records: records
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    } else {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'No records found.'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+}
+
+
+// --- Updated: Get ALL data for dashboard, including unpaid students ---
+function getAllData(selectedMonth) {
+    const regSheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!regSheet) {
+        return ContentService.createTextOutput(JSON.stringify([]))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    // 💡 Read registration sheet data ONCE
+    const regData = regSheet.getDataRange().getValues();
+    const allRegisteredStudents = regData.slice(1).map(row => ({
+        name: row[0],
+        class: row[1],
+        admissionDate: new Date(row[2]),
+        monthlyFee: row[3],
+        status: row[4],
+        withdrawnDate: row[5] ? new Date(row[5]) : null
+    }));
+
+    // 🚀 OPTIMIZATION: Get all fee data from the in-memory cache
+    const allMonthlyData = _getAllMonthlyFeeRecords(); 
+    let allRows = [];
+
+    if (selectedMonth) {
+        // Only get data for the selected month
+        const targetMonth = new Date(selectedMonth);
+        const targetMonthName = targetMonth.toLocaleString('default', {
+            month: 'long',
+            year: 'numeric'
+        });
+        
+        // 🚀 Use the cached data
+        allRows = _combineFeeDataAndRegistration(targetMonthName, allRegisteredStudents, allMonthlyData[targetMonthName] || []);
+
+    } else {
+        // Get data for all months
+        for (const sheetName in allMonthlyData) {
+            // 🚀 Use the cached data
+            const monthRows = _combineFeeDataAndRegistration(sheetName, allRegisteredStudents, allMonthlyData[sheetName]);
+            allRows = allRows.concat(monthRows);
+        }
+    }
+
+    // Format final data for output
+    const finalData = allRows.map(r => [r.month, r.name, r.class, r.date, r.monthlyFee, r.paidAmount, r.status]);
+    return ContentService.createTextOutput(JSON.stringify(finalData))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// --- ✅ New Helper function for single month data fetching, using cached data ---
+function _combineFeeDataAndRegistration(targetMonthName, allRegisteredStudents, monthlyData) {
+    let rows = [];
+    let paidStudents = new Set();
+
+    // 💡 Process the IN-MEMORY monthly fee data
+    for (let i = 0; i < monthlyData.length; i++) {
+        const data = monthlyData[i];
+        if (data[0]) {
+            rows.push({
+                month: targetMonthName,
+                name: data[0],
+                class: data[1],
+                date: data[2] ? Utilities.formatDate(new Date(data[2]), "GMT", "yyyy-MM-dd") : "",
+                monthlyFee: data[3] || 0,
+                paidAmount: data[4] || 0,
+                status: data[5]
+            });
+            paidStudents.add(data[0].toLowerCase());
+        }
+    }
+
+    const [m, y] = targetMonthName.split(" ");
+    const monthIndex = new Date(`${m} 1, ${y}`).getMonth();
+    const year = parseInt(y);
+
+    // 💡 Add 'Not Paid' students by checking against registration data IN-MEMORY
+    allRegisteredStudents.forEach(student => {
+        const admitted = (student.admissionDate.getFullYear() < year) ||
+            (student.admissionDate.getFullYear() === year && student.admissionDate.getMonth() <= monthIndex);
+
+        let withdrawnBefore = false;
+        if (student.status.toLowerCase() === 'inactive' && student.withdrawnDate) {
+            const lastDayPrevMonth = new Date(year, monthIndex, 0);
+            if (student.withdrawnDate < lastDayPrevMonth) withdrawnBefore = true;
+        }
+
+        if (admitted && !withdrawnBefore && !paidStudents.has(student.name.toLowerCase())) {
+            rows.push({
+                month: targetMonthName,
+                name: student.name,
+                class: student.class,
+                date: "",
+                monthlyFee: student.monthlyFee,
+                paidAmount: 0,
+                status: "Not Paid"
+            });
+        }
+    });
+    return rows;
+}
+
+// --- ✅ New: Get all months for dropdown (using cache) ---
+function getAvailableMonths() {
+    // 🚀 OPTIMIZATION: Use the keys from the cached data
+    const allMonthlyData = _getAllMonthlyFeeRecords();
+    const months = Object.keys(allMonthlyData);
+
+    const sortedMonths = months.sort((a, b) => {
+        const dateA = new Date(a);
+        const dateB = new Date(b);
+        return dateA - dateB;
+    });
+    
+    return ContentService.createTextOutput(JSON.stringify(sortedMonths))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+
+// --- OTHER FUNCTIONS (No speed changes needed, as they involve writes or single sheet reads) ---
+
+function editFeeDetails(data) {
+  const sheetName = data.month;
+  const sheet = SPREADSHEET.getSheetByName(sheetName);
+  // ... (rest of the code for editFeeDetails remains the same)
+  if (!sheet) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: `The sheet for '${sheetName}' does not exist.`
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const sheetData = sheet.getDataRange().getValues();
+  let studentRowIndex = -1;
+
+  for (let i = 1; i < sheetData.length; i++) {
+    if (sheetData[i][0] && sheetData[i][0].toLowerCase() === data.name.toLowerCase()) {
+      studentRowIndex = i + 1; // getRange is 1-based
+      break;
+    }
+  }
+
+  if (studentRowIndex === -1) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: 'error',
+      message: `No fee record found for student '${data.name}' in '${sheetName}'.`
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const rowRange = sheet.getRange(studentRowIndex, 1, 1, sheetData[0].length);
+  const rowData = rowRange.getValues()[0];
+
+  rowData[4] = data.paidAmount; 
+  rowData[5] = data.status; 
+  
+  rowRange.setValues([rowData]);
+
+  return ContentService.createTextOutput(JSON.stringify({
+    status: 'success',
+    message: `Fee details for '${data.name}' in '${sheetName}' updated successfully.`
+  })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function updateStudentDetails(data) {
+    const regSheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!regSheet) {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Registration sheet not found.'
+        })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const regData = regSheet.getDataRange().getValues();
+    let studentRowIndex = -1;
+    for (let i = 1; i < regData.length; i++) {
+        if (regData[i][0].toLowerCase() === data.name.toLowerCase()) {
+            studentRowIndex = i + 1;
+            break;
+        }
+    }
+
+    if (studentRowIndex === -1) {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Student not found.'
+        })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const range = regSheet.getRange(studentRowIndex, 1, 1, 6);
+    const row = range.getValues()[0];
+
+    row[1] = data.class;
+    row[3] = data.monthlyFee;
+    row[4] = data.status;
+    row[5] = data.withdrawnDate;
+
+    range.setValues([row]);
+
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success'
+    })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function registerStudent(data) {
+    let sheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!sheet) {
+        sheet = SPREADSHEET.insertSheet(REGISTRATION_SHEET_NAME);
+        sheet.appendRow(["Name", "Class", "Date of Admission", "Monthly Fee", "Status", "Date of Dropout"]);
+    }
+
+    const regData = sheet.getDataRange().getValues();
+    for (let i = 1; i < regData.length; i++) {
+        if (regData[i][0].toLowerCase() === data.name.toLowerCase() && regData[i][1].toLowerCase() === data.class.toLowerCase()) {
+            return ContentService.createTextOutput(JSON.stringify({
+                status: 'error',
+                message: 'Student with this name and class has already registered.'
+            }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+    }
+
+    sheet.appendRow([data.name, data.class, data.admissionDate, data.monthlyFee, "Active", ""]);
+
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success'
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function getStudents() {
+    const sheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!sheet) {
+        return ContentService.createTextOutput(JSON.stringify([])).setMimeType(ContentService.MimeType.JSON);
+    }
+    const data = sheet.getDataRange().getValues();
+    const students = data.slice(1).map(row => [row[0], row[1], row[2], row[3], row[4], row[5]]);
+
+    return ContentService.createTextOutput(JSON.stringify(students))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+function submitFee(data) {
+    const monthName = data.month;
+    let sheet = SPREADSHEET.getSheetByName(monthName);
+
+    if (!sheet) {
+        sheet = SPREADSHEET.insertSheet(monthName);
+        sheet.appendRow(["Name", "Class", "Date", "Monthly Fee", "Paid Amount", "Status"]);
+    }
+
+    const monthlyData = sheet.getDataRange().getValues();
+    const monthlyFeeFromData = parseFloat(data.monthlyFee);
+    const paidAmountFromData = parseFloat(data.paidAmount);
+
+    let studentRowIndex = -1;
+    let currentPaidAmount = 0;
+
+    for (let i = 1; i < monthlyData.length; i++) {
+        if (monthlyData[i][0] && monthlyData[i][0].toLowerCase() === data.name.toLowerCase()) {
+            studentRowIndex = i + 1;
+            currentPaidAmount = parseFloat(monthlyData[i][4] || 0);
+            break;
+        }
+    }
+
+    const newTotalPaidAmount = currentPaidAmount + paidAmountFromData;
+    let status;
+
+    if (newTotalPaidAmount > monthlyFeeFromData) {
+        status = "Extra Paid";
+    } else if (newTotalPaidAmount === monthlyFeeFromData) {
+        status = "Paid";
+    } else {
+        status = "Half Paid";
+    }
+
+    const today = new Date();
+    const formattedDate = Utilities.formatDate(today, SPREADSHEET.getSpreadsheetTimeZone(), "yyyy-MM-dd");
+
+    if (studentRowIndex === -1) {
+        sheet.appendRow([
+            data.name,
+            data.class,
+            formattedDate,
+            monthlyFeeFromData,
+            newTotalPaidAmount,
+            status
+        ]);
+    } else {
+        sheet.getRange(studentRowIndex, 5).setValue(newTotalPaidAmount);
+        sheet.getRange(studentRowIndex, 6).setValue(status);
+    }
+
+    // After a write operation (like submitFee), reset the cache so the next read is fresh.
+    MONTHLY_FEE_DATA_CACHE = null; 
+
+    sendFeeConfirmationEmail(data, newTotalPaidAmount, status, formattedDate);
+
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'success',
+        message: 'Fee submitted successfully and confirmation email sent.'
+    })).setMimeType(ContentService.MimeType.JSON);
+}
+
+function sendFeeConfirmationEmail(data, newTotalPaidAmount, status, formattedDate) {
+    const MY_EMAIL_ADDRESS = "khalid817014@gmail.com"; // Replace with your email address
+    const studentName = data.name;
+    const studentClass = data.class;
+    const month = data.month;
+    const paidAmount = data.paidAmount;
+
+    const subject = `Fee Submission Confirmation for ${studentName}`;
+    const body = `
+        Dear Admin,
+
+        This is an automated confirmation for a recent fee submission.
+
+        Student Name: ${studentName}
+        Class: ${studentClass}
+        Month: ${month}
+        Amount Paid Now: ${paidAmount}
+        Total Paid for this Month: ${newTotalPaidAmount}
+        Status: ${status}
+        Date: ${formattedDate}
+
+        Thank you.
+        `;
+
+    MailApp.sendEmail(MY_EMAIL_ADDRESS, subject, body);
+}
+
+function markWithdrawn(data) {
+    const regSheet = SPREADSHEET.getSheetByName(REGISTRATION_SHEET_NAME);
+    if (!regSheet) {
+        return ContentService.createTextOutput(JSON.stringify({
+            status: 'error',
+            message: 'Registration sheet not found.'
+        }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    const regData = regSheet.getDataRange().getValues();
+    for (let i = 1; i < regData.length; i++) {
+        if (regData[i][0].toLowerCase() === data.name.toLowerCase()) {
+            regSheet.getRange(i + 1, 5).setValue("Inactive");
+            regSheet.getRange(i + 1, 6).setValue(data.withdrawnDate);
+            return ContentService.createTextOutput(JSON.stringify({
+                status: 'success'
+            }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+        status: 'error',
+        message: 'Student not found.'
+    }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
