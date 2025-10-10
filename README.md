@@ -75,7 +75,7 @@ You need a Google Account to use Google Sheets and Google Apps Script.
 
 If you want to see the complete Apps Script code in a single file, click here:
 <p align="center">
-  <a href="https://khalid-randhawa.web.app/apps-projects/FMS-apps-script.html">
+  <a href="https://khalid-randhawa.web.app/apps-projects/FMS-dashboard/FMS-apps-script.html">
     <img src="https://img.shields.io/badge/View%20Apps%20Script%20Code-Source%20Code-000000?style=for-the-badge&logo=github&logoColor=white">
   </a>
 </p>
