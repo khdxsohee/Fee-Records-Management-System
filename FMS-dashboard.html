@@ -1,0 +1,383 @@
+<!--
+ ===================================================================
+ * PROJECT: Fee Records Management System (FMS)
+ * VERSION: v1.1.0 - Major Feature Update
+ * DATE: 2025-10-10
+ * AUTHOR: khdxsohee
+ * ===================================================================
+ -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fee Management System Dashboard</title>
+    <link rel="icon" type="image/png" sizes="512x512" href="assets/images/Fee Records.png" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="src/css/styles.css" />
+</head>
+
+<body>
+
+    <!-- Receipt Modal -->
+    <div id="receiptModal"
+        style="display:none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); justify-content:center; align-items:center; z-index:2000;">
+        <div
+            style="background:#fff; color:#000; padding:20px; border-radius:12px; max-width:400px; width:90%; text-align:center; position:relative;">
+            <h2 style="margin-bottom:15px; color:#0096c7;">Fee Receipt</h2>
+            <p>Do you want to generate a receipt for this payment?</p>
+            <div style="margin-top:20px; display:flex; justify-content:center; gap:10px;">
+                <button onclick="generateReceiptPDF(receiptData)"
+                    style="background:#0096c7; color:#fff; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Print
+                    Receipt</button>
+                <button onclick="closeReceiptModal()"
+                    style="background:#ccc; border:none; padding:10px 20px; border-radius:6px; cursor:pointer;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="passwordOverlay">
+        <div class="password-card">
+            <h2>Enter PIN to Access</h2>
+            <form id="passwordForm">
+                <div class="form-group">
+                    <label for="passwordInput" style="display: none;">PIN:</label>
+                    <input type="password" id="passwordInput" placeholder="Enter PIN" required inputmode="numeric"
+                        pattern="[0-9]*" />
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="loginBtn">Login</button>
+                </div>
+            </form>
+            <div id="passwordAlert" class="alert-message" style="display: none;"></div>
+        </div>
+    </div>
+    <h1 class="page-title">Student Fee Dashboard</h1>
+
+    <div class="nav-menu">
+        <button onclick="showSection('dashboardSection')">Dashboard</button>
+        <button onclick="showSection('registrationSection')">Register New Student</button>
+        <button style="background-color: #08CB00;" onclick="showSection('feeEntrySection')">Student Fee Entry</button>
+        <button onclick="showSection('withdrawnSection')">Student Dropout</button>
+        <button onclick="showSection('statementSection')">Student Statement</button>
+        <button onclick="showSection('editSection')">Edit Student Details</button>
+        <button onclick="showSection('editFeeSection')">Edit Fee Record</button>
+    </div>
+
+    <div id="dashboardSection" class="section active">
+        <div id="dashboardLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching dashboard data...</p>
+        </div>
+        <div class="controls">
+            <div class="card">
+                <label class="muted" for="monthSelect">Select Month</label>
+                <select id="monthSelect"></select>
+            </div>
+            <div class="card">
+                <label class="muted" for="statusSelect">Status</label>
+                <select id="statusSelect">
+                    <option value="">All</option>
+                    <option>Paid</option>
+                    <option>Half Paid</option>
+                    <option>Not Paid</option>
+                    <option>Extra Paid</option>
+                </select>
+            </div>
+            <div class="card">
+                <label class="muted" for="searchInput">Search Name/Class</label>
+                <input id="searchInput" placeholder="Type to filter…" />
+            </div>
+        </div>
+
+        <div class="kpis">
+            <div class="card kpi">
+                <h3>Total Students</h3>
+                <div class="value" id="kpiStudents">–</div>
+            </div>
+            <div class="card kpi">
+                <h3>Total Collected</h3>
+                <div class="value" id="kpiCollected">–</div>
+            </div>
+            <div class="card kpi">
+                <h3>Total Due</h3>
+                <div class="value" id="kpiDue">–</div>
+            </div>
+            <div class="card kpi">
+                <h3>Paid %</h3>
+                <div class="value" id="kpiPaidRate">–</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="chart-card">
+                <h3>Monthly Collections</h3><canvas id="barMonthly" height="110"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Student Status Over Time</h3><canvas id="lineStatus" height="110"></canvas>
+            </div>
+        </div>
+
+        <div class="table-wrap chart-card">
+            <h3>Transactions</h3>
+            <div id="tableInfo" class="muted"></div>
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Month</th>
+                        <th>Name</th>
+                        <th>Class</th>
+                        <th>Date</th>
+                        <th>Monthly Fee</th>
+                        <th>Paid Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        <div class="button-group">
+            <button class="print-btn" onclick="exportToPdfDashboard()">Generate Report</button>
+            <button class="print-btn" onclick="exportToExcelDashboard()">Export CSV</button>
+            <button class="print-btn" onclick="sendWhatsappReport()">Send Whatsapp</button>
+        </div>
+        <div class="footer-note">Info: © 2025. Special edition for ❤️ Teachers · by Khalid.</div>
+    </div>
+
+    <div id="registrationSection" class="section">
+        <div id="registrationLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Registering student...</p>
+        </div>
+        <div class="form-card">
+            <h2>Register New Student</h2>
+            <div id="registrationAlert" class="alert-message" style="display: none;"></div>
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="regName">Student Name:</label>
+                    <input type="text" id="regName" required />
+                </div>
+                <div class="form-group">
+                    <label for="regClass">Class:</label>
+                    <input type="text" id="regClass" required />
+                </div>
+                <div class="form-group">
+                    <label for="regAdmissionDate">Date of Admission:</label>
+                    <input type="date" id="regAdmissionDate" required />
+                </div>
+                <div class="form-group">
+                    <label for="regMonthlyFee">Monthly Fee:</label>
+                    <input type="number" id="regMonthlyFee" min="0" required />
+                </div>
+                <div class="form-group">
+                    <button type="submit">Register Student</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="feeEntrySection" class="section">
+        <div id="feeEntryLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching student data...</p>
+        </div>
+        <div class="form-card">
+            <div id="monthlyFeeDisplay"></div>
+            <h2>Student Fee Entry</h2>
+            <div id="feeEntryAlert" class="alert-message" style="display: none;"></div>
+            <form id="feeEntryForm">
+                <div class="form-group">
+                    <label for="studentName">Student Name:</label>
+                    <input type="text" id="studentName" autocomplete="off" required />
+                    <ul id="nameAutocompleteList" class="autocomplete-list"></ul>
+                    <p id="nameSearchLoading" class="autocomplete-loading-text" style="display: none;">Searching for
+                        students...</p>
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="studentClass">Class:</label>
+                    <input type="text" id="studentClass" readonly />
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="studentAdmissionDate">Admission Date:</label>
+                    <input type="date" id="studentAdmissionDate" readonly />
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="monthlyFee">Monthly Fee:</label>
+                    <input type="number" id="monthlyFee" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="paidAmount">Paid Amount:</label>
+                    <input type="number" id="paidAmount" min="0" required />
+                </div>
+                <div class="form-group">
+                    <label for="monthSelectEntry">Select Month:</label>
+                    <select id="monthSelectEntry" required></select>
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="status">Status:</label>
+                    <input type="text" id="status" readonly />
+                </div>
+                <div class="form-group" style="display: none;">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" readonly />
+                </div>
+                <div class="form-group">
+                    <button type="submit" id="submitFeeBtn">Submit Fee</button>
+                </div>
+            </form>
+        </div>
+        <div id="feeSummary" class="fee-summary" style="display: none;">
+            <h3>Fee Summary</h3>
+            <div>
+                <span class="summary-label">Total Months:</span> <span id="summaryTotalMonths"></span>
+            </div>
+            <div>
+                <span class="summary-label">Total Fee Owed:</span> <span id="summaryTotalOwed"></span>
+            </div>
+            <div>
+                <span class="summary-label">Total Fee Paid:</span> <span id="summaryTotalPaid"></span>
+            </div>
+            <div>
+                <span class="summary-label">Remaining Balance:</span> <span id="summaryRemainingBalance"></span>
+            </div>
+        </div>
+    </div>
+
+    <div id="withdrawnSection" class="section">
+        <div id="dropoutLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Marking as dropout...</p>
+        </div>
+        <div class="form-card">
+            <h2>Student Dropout</h2>
+            <div id="dropoutAlert" class="alert-message" style="display: none;"></div>
+            <form id="withdrawnForm">
+                <div class="form-group">
+                    <label for="withdrawnName">Student Name:</label>
+                    <input type="text" id="withdrawnName" autocomplete="off" required />
+                    <ul id="withdrawnAutocompleteList" class="autocomplete-list"></ul>
+                </div>
+                <div class="form-group">
+                    <label for="withdrawnDate">Date of Dropout:</label>
+                    <input type="date" id="withdrawnDate" required />
+                </div>
+                <div class="form-group">
+                    <button type="submit">Mark as Dropout</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="editFeeSection" class="section">
+        <div id="editFeeLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching fee record...</p>
+        </div>
+        <div class="form-card">
+            <h2>Edit Fee Details</h2>
+            <div id="editFeeAlert" class="alert-message" style="display: none;"></div>
+            <form id="editFeeForm">
+                <div class="form-group">
+                    <label for="editFeeStudentName">Student Name:</label>
+                    <input type="text" id="editFeeStudentName" autocomplete="off" required />
+                    <ul id="editFeeStudentNameAutocomplete" class="autocomplete-list"></ul>
+                </div>
+                <div class="form-group">
+                    <label for="editFeeMonth">Select Month:</label>
+                    <select id="editFeeMonth" required></select>
+                </div>
+                <div id="editFeeDetailsSection" style="display: none;">
+                    <div class="form-group">
+                        <label for="editFeePaidAmount">Paid Amount:</label>
+                        <input type="number" id="editFeePaidAmount" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editFeeStatus">Status:</label>
+                        <select id="editFeeStatus">
+                            <option value="Paid">Paid</option>
+                            <option value="Half Paid">Half Paid</option>
+                            <option value="Extra Paid">Extra Paid</option>
+                            <option value="Not Paid">Not Paid</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" id="saveFeeEditBtn">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+
+    <div id="editSection" class="section">
+        <div id="editLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Fetching student details...</p>
+        </div>
+        <div class="form-card">
+            <h2>Edit Student Details</h2>
+            <div id="editAlert" class="alert-message" style="display: none;"></div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label for="editName">Student Name:</label>
+                    <input type="text" id="editName" autocomplete="off" required />
+                    <ul id="editAutocompleteList" class="autocomplete-list"></ul>
+                </div>
+                <div id="editDetails" style="display: none;">
+                    <div class="form-group">
+                        <label for="editClass">Class:</label>
+                        <input type="text" id="editClass" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editMonthlyFee">Monthly Fee:</label>
+                        <input type="number" id="editMonthlyFee" min="0" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="editStatus">Status:</label>
+                        <select id="editStatus">
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="editDropoutDateGroup" style="display: none;">
+                        <label for="editDropoutDate">Date of Dropout:</label>
+                        <input type="date" id="editDropoutDate" />
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" id="saveEditBtn">Save Changes</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div id="statementSection" class="section">
+        <div id="statementLoadingIndicator" class="loading-indicator" style="display: none;">
+            <div class="spinner"></div>
+            <p>Generating statement...</p>
+        </div>
+        <div class="statement-card">
+            <h2>Student Statement</h2>
+            <div id="statementAlert" class="alert-message" style="display: none;"></div>
+            <div class="form-group">
+                <label for="searchName">Student Name:</label>
+                <input type="text" id="searchName" autocomplete="off" required />
+                <ul id="searchAutocompleteList" class="autocomplete-list"></ul>
+            </div>
+            <div class="form-group">
+                <button onclick="getStatement()">Generate Statement</button>
+            </div>
+            <div id="statementArea"></div>
+        </div>
+    </div>
+
+</body>
+<script src="src/js/fms-script.js"></script>
+
+</html>
