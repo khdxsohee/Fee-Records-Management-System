@@ -1,4 +1,4 @@
-# Fee Records Management System
+# Fee Records Management System 
 
 ![Version](https://img.shields.io/badge/version-v1.1.0-blue.svg)
 ![Status](https://img.shields.io/badge/status-active-green.svg)
