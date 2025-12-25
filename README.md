@@ -117,4 +117,4 @@ We welcome contributions\! If you have suggestions for new features, bug fixes, 
 
 ### Author
 
-                                                    Made with 💙 by khdxsohee
+                                                    Made with 💙💙 by khdxsohee
